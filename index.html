@@ -493,34 +493,23 @@
 
     for (let i = 0; i < pages.length; i++) {
       const p = pages[i];
-      const [w, h] = p.getSize();
-
+      const { width: w, height: h } = p.getSize();
+    
       const newW = w + marginPt;
       const newPage = dstPdf.addPage([newW, h]);
-
-      // Original links (1:1)
+    
       newPage.drawPage(embeddedPages[i], { x: 0, y: 0, width: w, height: h });
-
-      // Trennlinie
+    
       if (opts.dividerLine === "on" && marginPt > 0) {
         drawDivider(newPage, w, h, Math.max(0.4, strokePt));
       }
-
-      // Pattern auf rechter Fläche
+    
       const rx = w;
       const rw = marginPt;
       if (rw > 0) {
-        if (opts.paper === "lined") {
-          drawLined(newPage, rx, 0, rw, h, spacingPt, strokePt);
-        } else if (opts.paper === "grid") {
-          drawGrid(newPage, rx, 0, rw, h, spacingPt, strokePt);
-        } else if (opts.paper === "dots") {
-          drawDots(newPage, rx, 0, rw, h, spacingPt, dotSizePt);
-        }
-      }
-
-      if ((i+1) % 5 === 0 || i === pages.length - 1) {
-        setStatus(`Seite ${i+1}/${pages.length} fertig...`);
+        if (opts.paper === "lined") drawLined(newPage, rx, 0, rw, h, spacingPt, strokePt);
+        else if (opts.paper === "grid") drawGrid(newPage, rx, 0, rw, h, spacingPt, strokePt);
+        else if (opts.paper === "dots") drawDots(newPage, rx, 0, rw, h, spacingPt, dotSizePt);
       }
     }
 
