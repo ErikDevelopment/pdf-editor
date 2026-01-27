@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PDF Notizrand – Neon</title>
+
+  <!-- pdf-lib (Client-side PDF bearbeiten) -->
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+
+  <style>
+    :root{
+      --bg0:#070712;
+      --bg1:#0b0b1e;
+      --card:#0c0c1aee;
+      --stroke:#ffffff14;
+      --text:#e9e9ff;
+      --muted:#b8b8ffb3;
+      --violet:#b14cff;
+      --violet2:#6a2cff;
+      --pink:#ff4fd8;
+      --glow: 0 0 20px rgba(177,76,255,.35), 0 0 60px rgba(255,79,216,.18);
+      --radius: 22px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:
+        radial-gradient(900px 500px at 15% 10%, rgba(177,76,255,.22), transparent 60%),
+        radial-gradient(800px 450px at 85% 25%, rgba(255,79,216,.14), transparent 55%),
+        radial-gradient(1200px 700px at 50% 120%, rgba(106,44,255,.16), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:34px 18px 56px;
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      margin-bottom:22px;
+    }
+
+    .brand{
+      display:flex; align-items:center; gap:12px;
+    }
+    .logo{
+      width:40px;height:40px;border-radius:14px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,79,216,.9), rgba(177,76,255,.8) 35%, rgba(106,44,255,.6) 70%, rgba(0,0,0,.2));
+      box-shadow: var(--glow);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .brand h1{
+      margin:0;
+      font-size:16px;
+      letter-spacing:.3px;
+      font-weight:650;
+    }
+    .brand p{margin:0; font-size:12px; color:var(--muted)}
+
+    .pillbar{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.10);
+      color:var(--muted);
+      font-size:12px;
+      backdrop-filter: blur(10px);
+    }
+    .dot{
+      width:8px;height:8px;border-radius:999px;
+      background: radial-gradient(circle, var(--pink), var(--violet));
+      box-shadow: 0 0 10px rgba(255,79,216,.6);
+    }
+
+    .hero{
+      position:relative;
+      border-radius: var(--radius);
+      background:
+        radial-gradient(700px 420px at 50% 20%, rgba(177,76,255,.18), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow: 0 35px 90px rgba(0,0,0,.45);
+      overflow:hidden;
+    }
+
+    .hero::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(420px 280px at 18% 20%, rgba(255,79,216,.22), transparent 65%),
+        radial-gradient(520px 300px at 85% 25%, rgba(177,76,255,.25), transparent 70%),
+        radial-gradient(600px 380px at 50% 110%, rgba(106,44,255,.22), transparent 70%);
+      filter: blur(10px);
+      opacity:.8;
+      pointer-events:none;
+    }
+
+    .hero-inner{
+      position:relative;
+      padding:28px;
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:18px;
+    }
+
+    @media (max-width: 880px){
+      .hero-inner{grid-template-columns:1fr}
+    }
+
+    .title{
+      margin:0 0 10px;
+      font-size:38px;
+      line-height:1.05;
+      letter-spacing:-.6px;
+    }
+    .title .accent{
+      background: linear-gradient(90deg, var(--violet), var(--pink));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+      text-shadow: 0 0 24px rgba(177,76,255,.22);
+    }
+    .subtitle{
+      margin:0 0 18px;
+      color:var(--muted);
+      max-width:64ch;
+      font-size:14px;
+      line-height:1.55;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+    }
+
+    .card{
+      position:relative;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(12,12,26,.86), rgba(10,10,18,.72));
+      border:1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 18px 60px rgba(0,0,0,.45);
+      overflow:hidden;
+    }
+    .card::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        radial-gradient(240px 160px at 12% 0%, rgba(255,79,216,.18), transparent 60%),
+        radial-gradient(260px 170px at 90% 10%, rgba(177,76,255,.18), transparent 60%);
+      opacity:.55;
+      pointer-events:none;
+    }
+
+    .card-inner{position:relative; padding:18px}
+
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    @media (max-width: 520px){ .row{grid-template-columns:1fr} }
+
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin:0 0 6px;
+    }
+
+    input[type="file"]{
+      width:100%;
+      padding:12px;
+      border-radius:14px;
+      border:1px dashed rgba(255,255,255,.18);
+      background: rgba(255,255,255,.04);
+      color:var(--muted);
+    }
+
+    select, input[type="number"], input[type="range"]{
+      width:100%;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color:var(--text);
+      padding:10px 12px;
+      outline:none;
+    }
+    input[type="range"]{padding:10px 0}
+
+    .btnbar{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+
+    button{
+      appearance:none;
+      border:none;
+      cursor:pointer;
+      border-radius: 999px;
+      padding:12px 16px;
+      font-weight:650;
+      letter-spacing:.2px;
+      color: var(--text);
+      background: linear-gradient(90deg, rgba(177,76,255,.95), rgba(255,79,216,.90));
+      box-shadow: var(--glow);
+      transition: transform .12s ease, filter .12s ease, opacity .12s ease;
+    }
+    button.secondary{
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:none;
+      color:var(--muted);
+      font-weight:600;
+    }
+    button:active{transform: scale(.98)}
+    button:disabled{opacity:.45; cursor:not-allowed; filter:saturate(.7)}
+
+    .status{
+      margin-top:10px;
+      font-size:12px;
+      color:var(--muted);
+      min-height:18px;
+    }
+
+    .preview{
+      height: 520px;
+      border-radius: var(--radius);
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.25);
+      overflow:hidden;
+    }
+    .preview iframe{
+      width:100%;
+      height:100%;
+      border:0;
+      background: transparent;
+    }
+
+    .small{
+      font-size:12px;
+      color: var(--muted);
+      line-height:1.45;
+      margin:10px 0 0;
+    }
+
+    .divider{
+      height:1px;
+      background: rgba(255,255,255,.10);
+      margin:14px 0;
+    }
+
+    .kv{
+      display:flex; gap:10px; flex-wrap:wrap;
+      font-size:12px; color:var(--muted);
+    }
+    .kv span{
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <h1>PDF Notizrand <span style="opacity:.6">/ Neon</span></h1>
+          <p>PDF rechts erweitern für GoodNotes (liniert, kariert, punkte)</p>
+        </div>
+      </div>
+      <div class="pillbar">
+        <div class="pill"><span class="dot"></span> 100% lokal im Browser</div>
+        <div class="pill"><span class="dot"></span> GitHub Pages ready</div>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-inner">
+        <div>
+          <h2 class="title">The Gateway to your <span class="accent">PDF Notes</span></h2>
+          <p class="subtitle">
+            Wähle ein PDF, erweitere jede Seite nach rechts und lade das neue PDF runter – perfekt, um in GoodNotes direkt daneben zu schreiben.
+          </p>
+
+          <div class="card">
+            <div class="card-inner">
+              <label>PDF auswählen</label>
+              <input id="file" type="file" accept="application/pdf" />
+
+              <div class="divider"></div>
+
+              <div class="row">
+                <div>
+                  <label>Rechter Rand (mm)</label>
+                  <input id="marginMm" type="number" min="0" max="210" step="1" value="70" />
+                </div>
+                <div>
+                  <label>Papierstil</label>
+                  <select id="paper">
+                    <option value="blank">Leer</option>
+                    <option value="lined">Liniert</option>
+                    <option value="grid">Kariert</option>
+                    <option value="dots">Punkte</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:12px">
+                <div>
+                  <label>Abstand (mm) – Linien/Gitter/Punkte</label>
+                  <input id="spacingMm" type="number" min="3" max="30" step="1" value="8" />
+                </div>
+                <div>
+                  <label>Linienstärke (pt)</label>
+                  <input id="strokePt" type="number" min="0.2" max="2" step="0.1" value="0.5" />
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:12px">
+                <div>
+                  <label>Punktgröße (pt) (nur Punkte)</label>
+                  <input id="dotSizePt" type="number" min="0.2" max="2.5" step="0.1" value="0.8" />
+                </div>
+                <div>
+                  <label>Trennlinie zwischen PDF & Notizen</label>
+                  <select id="dividerLine">
+                    <option value="on" selected>An</option>
+                    <option value="off">Aus</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="btnbar">
+                <button id="run" disabled>PDF erweitern</button>
+                <button id="download" class="secondary" disabled>Download</button>
+              </div>
+              <div id="status" class="status"></div>
+
+              <p class="small">
+                Hinweis: Die Datei bleibt auf deinem Gerät (kein Upload). Bei sehr großen PDFs kann es auf mobilen Geräten länger dauern.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card">
+            <div class="card-inner">
+              <div class="kv">
+                <span>pdf-lib</span><span>GoodNotes</span><span>Notizrand</span><span>GitHub Pages</span>
+              </div>
+              <div style="height:12px"></div>
+              <div class="preview">
+                <iframe id="preview" title="Vorschau"></iframe>
+              </div>
+              <div class="small">Vorschau zeigt das zuletzt erzeugte PDF.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+<script>
+(() => {
+  const { PDFDocument, rgb } = PDFLib;
+
+  const $file = document.getElementById('file');
+  const $run = document.getElementById('run');
+  const $download = document.getElementById('download');
+  const $status = document.getElementById('status');
+  const $preview = document.getElementById('preview');
+
+  const $marginMm = document.getElementById('marginMm');
+  const $paper = document.getElementById('paper');
+  const $spacingMm = document.getElementById('spacingMm');
+  const $strokePt = document.getElementById('strokePt');
+  const $dotSizePt = document.getElementById('dotSizePt');
+  const $dividerLine = document.getElementById('dividerLine');
+
+  let outBlobUrl = null;
+
+  // mm -> PDF points
+  const mm2pt = (mm) => mm * 72 / 25.4;
+
+  const setStatus = (txt) => { $status.textContent = txt || ""; };
+
+  $file.addEventListener('change', () => {
+    $run.disabled = !$file.files?.[0];
+    $download.disabled = true;
+    if (outBlobUrl) URL.revokeObjectURL(outBlobUrl);
+    outBlobUrl = null;
+    $preview.src = "about:blank";
+    setStatus("");
+  });
+
+  function drawDivider(newPage, x, h, strokePt) {
+    newPage.drawLine({
+      start: { x, y: 0 },
+      end:   { x, y: h },
+      thickness: strokePt,
+      color: rgb(1,1,1),
+      opacity: 0.10
+    });
+  }
+
+  function drawLined(newPage, x0, y0, w, h, spacingPt, strokePt) {
+    for (let y = y0 + spacingPt; y < y0 + h; y += spacingPt) {
+      newPage.drawLine({
+        start: { x: x0, y },
+        end:   { x: x0 + w, y },
+        thickness: strokePt,
+        color: rgb(1,1,1),
+        opacity: 0.10
+      });
+    }
+  }
+
+  function drawGrid(newPage, x0, y0, w, h, spacingPt, strokePt) {
+    // horizontal
+    for (let y = y0 + spacingPt; y < y0 + h; y += spacingPt) {
+      newPage.drawLine({
+        start: { x: x0, y },
+        end:   { x: x0 + w, y },
+        thickness: strokePt,
+        color: rgb(1,1,1),
+        opacity: 0.10
+      });
+    }
+    // vertical
+    for (let x = x0 + spacingPt; x < x0 + w; x += spacingPt) {
+      newPage.drawLine({
+        start: { x, y: y0 },
+        end:   { x, y: y0 + h },
+        thickness: strokePt,
+        color: rgb(1,1,1),
+        opacity: 0.08
+      });
+    }
+  }
+
+  function drawDots(newPage, x0, y0, w, h, spacingPt, dotSizePt) {
+    const r = dotSizePt / 2;
+    for (let y = y0 + spacingPt; y < y0 + h; y += spacingPt) {
+      for (let x = x0 + spacingPt; x < x0 + w; x += spacingPt) {
+        newPage.drawCircle({
+          x, y,
+          size: r,
+          color: rgb(1,1,1),
+          opacity: 0.18
+        });
+      }
+    }
+  }
+
+  async function processPdf(arrayBuffer, opts) {
+    const srcPdf = await PDFDocument.load(arrayBuffer);
+    const dstPdf = await PDFDocument.create();
+
+    const pages = srcPdf.getPages();
+    const marginPt = mm2pt(opts.marginMm);
+    const spacingPt = mm2pt(opts.spacingMm);
+    const strokePt = Number(opts.strokePt);
+    const dotSizePt = Number(opts.dotSizePt);
+
+    setStatus(`Seiten: ${pages.length} – Verarbeite...`);
+
+    // Embed alle Seiten (schneller als einzeln pro Page load)
+    const embeddedPages = await dstPdf.embedPages(pages);
+
+    for (let i = 0; i < pages.length; i++) {
+      const p = pages[i];
+      const [w, h] = p.getSize();
+
+      const newW = w + marginPt;
+      const newPage = dstPdf.addPage([newW, h]);
+
+      // Original links (1:1)
+      newPage.drawPage(embeddedPages[i], { x: 0, y: 0, width: w, height: h });
+
+      // Trennlinie
+      if (opts.dividerLine === "on" && marginPt > 0) {
+        drawDivider(newPage, w, h, Math.max(0.4, strokePt));
+      }
+
+      // Pattern auf rechter Fläche
+      const rx = w;
+      const rw = marginPt;
+      if (rw > 0) {
+        if (opts.paper === "lined") {
+          drawLined(newPage, rx, 0, rw, h, spacingPt, strokePt);
+        } else if (opts.paper === "grid") {
+          drawGrid(newPage, rx, 0, rw, h, spacingPt, strokePt);
+        } else if (opts.paper === "dots") {
+          drawDots(newPage, rx, 0, rw, h, spacingPt, dotSizePt);
+        }
+      }
+
+      if ((i+1) % 5 === 0 || i === pages.length - 1) {
+        setStatus(`Seite ${i+1}/${pages.length} fertig...`);
+      }
+    }
+
+    const bytes = await dstPdf.save({ useObjectStreams: true });
+    return bytes;
+  }
+
+  $run.addEventListener('click', async () => {
+    const f = $file.files?.[0];
+    if (!f) return;
+
+    $run.disabled = true;
+    $download.disabled = true;
+    setStatus("Lese PDF...");
+
+    try {
+      const buf = await f.arrayBuffer();
+      const opts = {
+        marginMm: Number($marginMm.value || 0),
+        paper: $paper.value,
+        spacingMm: Number($spacingMm.value || 8),
+        strokePt: Number($strokePt.value || 0.5),
+        dotSizePt: Number($dotSizePt.value || 0.8),
+        dividerLine: $dividerLine.value
+      };
+
+      const outBytes = await processPdf(buf, opts);
+
+      const blob = new Blob([outBytes], { type: "application/pdf" });
+      if (outBlobUrl) URL.revokeObjectURL(outBlobUrl);
+      outBlobUrl = URL.createObjectURL(blob);
+
+      $preview.src = outBlobUrl;
+      $download.disabled = false;
+
+      setStatus("Fertig. Du kannst jetzt herunterladen oder direkt in GoodNotes importieren.");
+    } catch (e) {
+      console.error(e);
+      setStatus("Fehler: " + (e?.message || String(e)));
+    } finally {
+      $run.disabled = false;
+    }
+  });
+
+  $download.addEventListener('click', () => {
+    if (!outBlobUrl) return;
+    const a = document.createElement('a');
+    a.href = outBlobUrl;
+    a.download = "pdf-mit-notizrand.pdf";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  });
+})();
+</script>
+</body>
+</html>
