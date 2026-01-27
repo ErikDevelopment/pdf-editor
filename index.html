@@ -417,64 +417,62 @@
     setStatus("");
   });
 
-  function drawDivider(newPage, x, h, strokePt) {
+function drawDivider(newPage, x, h, strokePt) {
+  newPage.drawLine({
+    start: { x, y: 0 },
+    end:   { x, y: h },
+    thickness: strokePt,
+    color: PDFLib.rgb(0,0,0),
+    opacity: 0.20
+  });
+}
+
+function drawLined(newPage, x0, y0, w, h, spacingPt, strokePt) {
+  for (let y = y0 + spacingPt; y < y0 + h; y += spacingPt) {
     newPage.drawLine({
-      start: { x, y: 0 },
-      end:   { x, y: h },
+      start: { x: x0, y },
+      end:   { x: x0 + w, y },
       thickness: strokePt,
-      color: rgb(1,1,1),
+      color: PDFLib.rgb(0,0,0),
+      opacity: 0.18
+    });
+  }
+}
+
+function drawGrid(newPage, x0, y0, w, h, spacingPt, strokePt) {
+  for (let y = y0 + spacingPt; y < y0 + h; y += spacingPt) {
+    newPage.drawLine({
+      start: { x: x0, y },
+      end:   { x: x0 + w, y },
+      thickness: strokePt,
+      color: PDFLib.rgb(0,0,0),
+      opacity: 0.14
+    });
+  }
+  for (let x = x0 + spacingPt; x < x0 + w; x += spacingPt) {
+    newPage.drawLine({
+      start: { x, y: y0 },
+      end:   { x, y: y0 + h },
+      thickness: strokePt,
+      color: PDFLib.rgb(0,0,0),
       opacity: 0.10
     });
   }
+}
 
-  function drawLined(newPage, x0, y0, w, h, spacingPt, strokePt) {
-    for (let y = y0 + spacingPt; y < y0 + h; y += spacingPt) {
-      newPage.drawLine({
-        start: { x: x0, y },
-        end:   { x: x0 + w, y },
-        thickness: strokePt,
-        color: rgb(1,1,1),
-        opacity: 0.10
-      });
-    }
-  }
-
-  function drawGrid(newPage, x0, y0, w, h, spacingPt, strokePt) {
-    // horizontal
-    for (let y = y0 + spacingPt; y < y0 + h; y += spacingPt) {
-      newPage.drawLine({
-        start: { x: x0, y },
-        end:   { x: x0 + w, y },
-        thickness: strokePt,
-        color: rgb(1,1,1),
-        opacity: 0.10
-      });
-    }
-    // vertical
+function drawDots(newPage, x0, y0, w, h, spacingPt, dotRadiusPt) {
+  // dotRadiusPt = Radius in Punkten
+  for (let y = y0 + spacingPt; y < y0 + h; y += spacingPt) {
     for (let x = x0 + spacingPt; x < x0 + w; x += spacingPt) {
-      newPage.drawLine({
-        start: { x, y: y0 },
-        end:   { x, y: y0 + h },
-        thickness: strokePt,
-        color: rgb(1,1,1),
-        opacity: 0.08
+      newPage.drawCircle({
+        x, y,
+        size: dotRadiusPt,
+        color: PDFLib.rgb(0,0,0),
+        opacity: 0.20
       });
     }
   }
-
-  function drawDots(newPage, x0, y0, w, h, spacingPt, dotSizePt) {
-    const r = dotSizePt / 2;
-    for (let y = y0 + spacingPt; y < y0 + h; y += spacingPt) {
-      for (let x = x0 + spacingPt; x < x0 + w; x += spacingPt) {
-        newPage.drawCircle({
-          x, y,
-          size: r,
-          color: rgb(1,1,1),
-          opacity: 0.18
-        });
-      }
-    }
-  }
+}
 
   async function processPdf(arrayBuffer, opts) {
     const srcPdf = await PDFDocument.load(arrayBuffer);
